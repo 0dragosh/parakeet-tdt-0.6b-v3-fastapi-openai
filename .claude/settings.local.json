@@ -1,0 +1,15 @@
+{
+  "enabledMcpjsonServers": [
+    "context7",
+    "github",
+    "grafana",
+    "kagi",
+    "memory",
+    "n8n-mcp",
+    "nixos",
+    "sequential-thinking",
+    "serena",
+    "terraform"
+  ],
+  "enableAllProjectMcpServers": true
+}

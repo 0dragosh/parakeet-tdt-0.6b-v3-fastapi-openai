@@ -26,9 +26,6 @@ Published images are pushed by GitHub Actions to GHCR:
 - `ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:cpu` (CPU)
 
 ```bash
-# Optional: patch upstream Dockerfile.gpu if it still uses CUDA 12.1 cuDNN8
-./scripts/patch_upstream_dockerfile.sh .
-
 # Build and run with Docker Compose
 docker compose up parakeet-gpu -d
 

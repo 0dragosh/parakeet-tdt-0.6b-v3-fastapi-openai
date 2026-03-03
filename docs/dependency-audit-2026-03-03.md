@@ -20,14 +20,15 @@ This snapshot compares direct dependency constraints in `pyproject.toml` to the 
 | `psutil` | `>=7.2.2` | `7.2.2` | Up to date |
 | `requests` | `>=2.32.5` | `2.32.5` | Up to date |
 | `numpy` | `>=1.21.6` | `2.4.2` | Allowed by constraint |
-| `onnxruntime` (cpu extra) | `>=1.24.2` | `1.24.2` | Up to date |
-| `onnxruntime-gpu` (gpu extra) | `>=1.24.2` | `1.24.2` | Up to date |
+| `onnxruntime` (cpu extra) | `>=1.23.2,<1.24.0` | `1.24.2` | Intentionally pinned for Python 3.10 compatibility |
+| `onnxruntime-gpu` (gpu extra) | `>=1.23.2,<1.24.0` | `1.24.2` | Intentionally pinned for Python 3.10 compatibility |
 | `pytest` (dev extra) | `>=9.0.2` | `9.0.2` | Up to date |
 
 ## Notes
 
 - `onnxruntime` / `onnxruntime-gpu` / `onnx-asr` currently declare `numpy>=1.21.6` on PyPI, so constraining `numpy<2` is no longer required.
 - The project now relies on `uv.lock` for reproducible installs in CI and local development.
+- `onnxruntime` and `onnxruntime-gpu` were capped below `1.24` because `1.24.x` no longer publishes `cp310` wheels; this repo still targets Python 3.10 in CI and Docker images.
 
 ## Sources
 
