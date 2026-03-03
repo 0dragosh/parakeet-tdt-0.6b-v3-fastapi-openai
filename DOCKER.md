@@ -11,8 +11,8 @@ This document covers Docker deployment options for Parakeet TDT transcription se
 docker compose up parakeet-cpu -d
 
 # Or build manually
-docker build -f Dockerfile.cpu -t parakeet-tdt:cpu .
-docker run -d --name parakeet -p 5092:5092 -v parakeet-models:/app/models parakeet-tdt:cpu
+docker build -f Dockerfile.cpu -t ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:cpu .
+docker run -d --name parakeet -p 5092:5092 -v parakeet-models:/app/models ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:cpu
 ```
 
 ### GPU Deployment (Requires NVIDIA GPU)
@@ -21,14 +21,21 @@ docker run -d --name parakeet -p 5092:5092 -v parakeet-models:/app/models parake
 - NVIDIA GPU with CUDA support
 - [NVIDIA Container Toolkit](https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/install-guide.html)
 
+Published images are pushed by GitHub Actions to GHCR:
+- `ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest` (GPU)
+- `ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:cpu` (CPU)
+
 ```bash
+# Optional: patch upstream Dockerfile.gpu if it still uses CUDA 12.1 cuDNN8
+./scripts/patch_upstream_dockerfile.sh .
+
 # Build and run with Docker Compose
 docker compose up parakeet-gpu -d
 
 # Or build manually
-docker build -f Dockerfile.gpu -t parakeet-tdt:gpu .
+docker build -f Dockerfile.gpu -t ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest .
 docker run -d --name parakeet-gpu -p 5092:5092 --gpus all \
-    -v parakeet-models:/app/models parakeet-tdt:gpu
+    -v parakeet-models:/app/models ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest
 ```
 
 ## Endpoints
@@ -48,6 +55,7 @@ docker run -d --name parakeet-gpu -p 5092:5092 --gpus all \
 |----------|---------|-------------|
 | `HF_HOME` | `/app/models` | HuggingFace model cache |
 | `HF_HUB_CACHE` | `/app/models` | HuggingFace hub cache |
+| `PARAKEET_DEVICE` | `auto` | Runtime provider mode: `auto`, `cuda`, `tensorrt`, or `cpu` |
 
 ### Persistent Model Cache
 
@@ -68,8 +76,9 @@ docker volume rm parakeet-models
 
 | File | Description |
 |------|-------------|
+| `pyproject.toml` | uv dependency definitions (cpu/gpu extras) |
 | `Dockerfile.cpu` | CPU-only image (Python 3.10 slim) |
-| `Dockerfile.gpu` | NVIDIA CUDA 12.1 image with GPU support |
+| `Dockerfile.gpu` | NVIDIA CUDA 12.4.1 cuDNN runtime image with GPU support |
 | `docker-compose.yml` | Orchestration for both variants |
 | `.dockerignore` | Excludes unnecessary files from build |
 
@@ -93,7 +102,7 @@ curl -X POST http://localhost:5092/v1/audio/transcriptions \
 
 **GPU not detected:**
 - Verify NVIDIA Container Toolkit: `nvidia-smi` should work inside container
-- Run: `docker run --rm --gpus all nvidia/cuda:12.1.1-base-ubuntu22.04 nvidia-smi`
+- Run: `docker run --rm --gpus all nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04 nvidia-smi`
 
 **Out of memory:**
 - CPU image requires ~2GB RAM

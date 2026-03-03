@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.cpu
-    image: parakeet-tdt:cpu
+    image: ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:cpu
     container_name: parakeet-cpu
     ports:
       - "5092:5092"
@@ -25,7 +25,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.gpu
-    image: parakeet-tdt:gpu
+    image: ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest
     container_name: parakeet-gpu
     ports:
       - "5092:5092"

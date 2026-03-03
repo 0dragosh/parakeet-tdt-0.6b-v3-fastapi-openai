@@ -1,0 +1,103 @@
+name: Build Docker Images
+
+on:
+  push:
+    branches:
+      - main
+    tags:
+      - "v*"
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Python
+        uses: actions/setup-python@v6.2.0
+        with:
+          python-version: "3.10"
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@v7.3.1
+
+      - name: Verify lockfile
+        run: uv lock --check
+
+      - name: Install dependencies
+        run: uv sync --extra cpu --extra dev
+
+      - name: Run unit tests
+        run: uv run python -m unittest discover -s tests -p 'test_*.py'
+
+      - name: Compile modules
+        run: uv run python -m compileall app.py src tests scripts
+
+  build:
+    needs: validate
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - variant: gpu
+            dockerfile: Dockerfile.gpu
+          - variant: cpu
+            dockerfile: Dockerfile.cpu
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6.0.2
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3.12.0
+
+      - name: Compute image name
+        run: |
+          OWNER_LC="$(echo "${{ github.repository_owner }}" | tr '[:upper:]' '[:lower:]')"
+          echo "IMAGE_NAME=ghcr.io/${OWNER_LC}/parakeet-tdt-0.6b-v3-fastapi-openai" >> "$GITHUB_ENV"
+
+      - name: Compute image tags
+        run: |
+          SHORT_SHA="${GITHUB_SHA::7}"
+          if [ "${{ matrix.variant }}" = "gpu" ]; then
+            {
+              echo "TAGS<<EOF"
+              echo "${IMAGE_NAME}:latest"
+              echo "${IMAGE_NAME}:gpu"
+              echo "${IMAGE_NAME}:gpu-${SHORT_SHA}"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          else
+            {
+              echo "TAGS<<EOF"
+              echo "${IMAGE_NAME}:cpu"
+              echo "${IMAGE_NAME}:cpu-${SHORT_SHA}"
+              echo "EOF"
+            } >> "$GITHUB_ENV"
+          fi
+
+      - name: Log in to GHCR
+        if: github.event_name != 'pull_request'
+        uses: docker/login-action@v3.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and optionally push
+        uses: docker/build-push-action@v6.19.2
+        with:
+          context: .
+          file: ./${{ matrix.dockerfile }}
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ env.TAGS }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

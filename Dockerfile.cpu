@@ -19,17 +19,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN useradd --create-home --shell /bin/bash parakeet
 WORKDIR /app
 
-# Copy requirements first for layer caching
-COPY requirements.txt .
+# Copy dependency metadata first for layer caching
+COPY pyproject.toml README.md ./
 
-# Install Python dependencies
-RUN pip install --no-cache-dir --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Install Python dependencies with uv (CPU extra)
+RUN pip install --no-cache-dir --upgrade pip uv && \
+    uv sync --no-dev --no-install-project --extra cpu
 
 # Copy application code
 COPY app.py .
+COPY src/ src/
 COPY templates/ templates/
-COPY parakeet.png .
+COPY assets/ assets/
 
 # Create directories for runtime
 RUN mkdir -p temp_uploads models && \
@@ -43,6 +44,8 @@ ENV HF_HOME=/app/models
 ENV HF_HUB_CACHE=/app/models
 ENV HF_HUB_DISABLE_SYMLINKS_WARNING=true
 ENV PYTHONUNBUFFERED=1
+ENV PYTHONPATH=/app/src
+ENV PATH=/app/.venv/bin:$PATH
 
 # Expose the API port
 EXPOSE 5092

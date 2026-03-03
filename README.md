@@ -86,10 +86,32 @@ Additional benchmark on real-world YouTube content across multiple languages:
 ## Requirements
 
 *   [Docker](https://docs.docker.com/get-docker/) (Recommended)
-*   Or: Python 3.10+ and [FFmpeg](https://ffmpeg.org/)
+*   Or: Python 3.10+, [uv](https://docs.astral.sh/uv/), and [FFmpeg](https://ffmpeg.org/)
 
 ### CPU Optimization
 For hybrid CPUs (like Intel 12th-14th Gen), performance is significantly improved by pinning the process to Performance cores (P-cores).
+
+## Repository Layout
+
+```
+.
+├── app.py                         # Compatibility launcher
+├── src/parakeet_server/server.py  # Main Flask + ONNX runtime service
+├── templates/                     # Web UI templates
+├── assets/                        # Static assets
+├── tests/                         # Unit/integration tests
+├── scripts/                       # Diagnostics and benchmark scripts
+├── pyproject.toml                 # uv dependency/project configuration
+├── uv.lock                        # Reproducible dependency lockfile
+├── Dockerfile.cpu
+├── Dockerfile.gpu
+└── docker-compose.yml
+```
+
+## Additional Docs
+
+- [Architecture](docs/architecture.md)
+- [Dependency Audit (2026-03-03)](docs/dependency-audit-2026-03-03.md)
 
 ## Installation
 
@@ -113,17 +135,27 @@ The server will be available at `http://localhost:5092`. See [DOCKER.md](DOCKER.
 
 ---
 
-### Conda (Alternative)
+### uv (Local Development)
 
 For development or customization:
 
 ```bash
-conda create -n parakeet-onnx python=3.10
-conda activate parakeet-onnx
 git clone https://github.com/groxaxo/parakeet-tdt-0.6b-v3-fastapi-openai
 cd parakeet-tdt-0.6b-v3-fastapi-openai
-pip install -r requirements.txt
+uv sync --extra cpu
 ```
+
+Run tests:
+
+```bash
+uv run python -m unittest discover -s tests -p 'test_*.py'
+```
+
+## CI/CD
+
+- GitHub Actions validates dependency lock consistency via `uv lock --check`.
+- Unit tests and module compile checks run on each PR/push.
+- Docker images are built for CPU/GPU and published to GHCR on `main` and `v*` tags.
 
 ## Usage
 
@@ -132,8 +164,7 @@ pip install -r requirements.txt
 Parakeet TDT provides an OpenAI-compatible API server.
 
 ```bash
-conda activate parakeet-onnx
-python app.py
+uv run python app.py
 ```
 *   **Port**: 5092
 *   **Docs**: [http://127.0.0.1:5092/docs](http://127.0.0.1:5092/docs)
@@ -196,8 +227,7 @@ The web interface includes a dropdown menu to select between INT8, FP16, and FP3
 
 1.  **Start the Parakeet Server** (if not already running):
     ```bash
-    conda activate parakeet-onnx
-    python app.py
+    uv run python app.py
     ```
     The server will be available at `http://127.0.0.1:5092`
 

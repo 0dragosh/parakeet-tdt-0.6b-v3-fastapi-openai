@@ -31,11 +31,12 @@ benchmark_results/
 
 # Models (will be downloaded at runtime)
 models/
+.models/
+.local/
 
-# Test files
-test_*.py
-benchmark.py
-inspect_model.py
+# Development and test files
+tests/
+scripts/
 
 # Docker
 Dockerfile*

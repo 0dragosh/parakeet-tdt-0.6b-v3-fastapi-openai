@@ -1,41 +1,36 @@
-# Python
+# Python bytecode and caches
 __pycache__/
 *.py[cod]
 *$py.class
-temp_uploads/
-models/
-.DS_Store
-server.log
-benchmark_results/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Virtual environments / tooling
+.venv/
 venv/
-.env
-.idea/
-.vscode/
 env/
+.env
+.python-version
+.cache/
+
+# Build artifacts
 build/
-develop-eggs/
 dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
 *.egg-info/
-.installed.cfg
-*.egg
+.eggs/
 
-# Parakeet Server
-models/
+# Runtime and local data
 temp_uploads/
-server.log
+models/
+.models/
+.local/
+benchmark_results/
 *.log
+server.log
 nohup.out
-.DS_Store
 
-# IDE
+# OS / editor
+.DS_Store
 .idea/
 .vscode/
