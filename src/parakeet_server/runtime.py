@@ -1,6 +1,7 @@
 """ONNX runtime and model loading management."""
 
 from typing import Dict, List
+import os
 import threading
 import traceback
 
@@ -101,7 +102,17 @@ def ensure_runtime_initialized() -> None:
             onnx_asr = onnx_asr_module
             ort = ort_module
 
-            available_providers = ort.get_available_providers()
+            # Suppress C++ TensorRT probe errors on stderr (the native
+            # dlopen of libnvinfer.so logs to fd 2 before Python can act).
+            _devnull = os.open(os.devnull, os.O_WRONLY)
+            _old_stderr = os.dup(2)
+            os.dup2(_devnull, 2)
+            try:
+                available_providers = ort.get_available_providers()
+            finally:
+                os.dup2(_old_stderr, 2)
+                os.close(_devnull)
+                os.close(_old_stderr)
             providers_to_try = build_provider_priority(available_providers)
 
             runtime_state["available_providers"] = available_providers
