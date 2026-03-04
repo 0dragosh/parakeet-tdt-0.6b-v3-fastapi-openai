@@ -17,8 +17,10 @@ SILENCE_DETECT_TIMEOUT = 300
 MIN_SPLIT_GAP = 5.0
 
 DEFAULT_MODEL_NAME = "parakeet-tdt-0.6b-v3"
+# Auto-mode provider priority (highest to lowest).
+# TensorRT is excluded to avoid noisy dlopen errors when libnvinfer
+# is not installed.  Use PARAKEET_DEVICE=tensorrt to opt in explicitly.
 PROVIDER_PRIORITY = (
-    "TensorrtExecutionProvider",
     "CUDAExecutionProvider",
     "CPUExecutionProvider",
 )
