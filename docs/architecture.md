@@ -39,9 +39,11 @@ The service is a Flask API that exposes an OpenAI-compatible transcription endpo
 
 `PARAKEET_DEVICE` controls provider behavior:
 
-- `auto`: prefer TensorRT, then CUDA, then CPU
+- `auto` (default): prefer CUDA, then CPU
 - `cuda`: require CUDA provider (with CPU fallback if available)
-- `tensorrt`: require TensorRT provider (with CUDA/CPU fallbacks if available)
+- `tensorrt`: require TensorRT provider (with CUDA/CPU fallbacks if available). ~2-4x faster than CUDA but has a one-time engine build cost on first run.
 - `cpu`: CPU only
+
+TensorRT libraries are included in `Dockerfile.gpu` but the provider is **not active by default**. Set `PARAKEET_DEVICE=tensorrt` to opt in.
 
 Provider status is exposed in `/health`.
