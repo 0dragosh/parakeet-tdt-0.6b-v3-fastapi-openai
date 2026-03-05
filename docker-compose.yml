@@ -46,6 +46,34 @@ services:
       retries: 3
       start_period: 120s
 
+  # GPU deployment with TensorRT acceleration
+  parakeet-tensorrt:
+    build:
+      context: .
+      dockerfile: Dockerfile.gpu
+    image: ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest
+    container_name: parakeet-tensorrt
+    ports:
+      - "5092:5092"
+    volumes:
+      - parakeet-models:/app/models
+    environment:
+      - PARAKEET_DEVICE=tensorrt
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [ gpu ]
+    healthcheck:
+      test: [ "CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:5092/health')" ]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 120s
+
 volumes:
   parakeet-models:
     name: parakeet-models

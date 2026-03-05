@@ -1,20 +1,24 @@
 # Parakeet TDT 0.6B ONNX - GPU Dockerfile
 # High-performance speech transcription with NVIDIA CUDA
+# Optional TensorRT acceleration via PARAKEET_DEVICE=tensorrt
 
 FROM nvidia/cuda:12.4.1-cudnn-runtime-ubuntu22.04
 
 LABEL maintainer="Parakeet TDT"
-LABEL description="ONNX-optimized speech transcription service (GPU/CUDA)"
+LABEL description="ONNX-optimized speech transcription service (GPU/CUDA + TensorRT)"
 
 # Prevent interactive prompts during build
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Install system dependencies and Python 3.10
+# Install system dependencies, Python 3.10, and TensorRT runtime libraries
+# TensorRT is included but not active by default — set PARAKEET_DEVICE=tensorrt to enable.
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3.10 \
     python3.10-venv \
     python3-pip \
     ffmpeg \
+    libnvinfer10 \
+    libnvinfer-plugin10 \
     && ln -sf /usr/bin/python3.10 /usr/bin/python \
     && ln -sf /usr/bin/python3.10 /usr/bin/python3 \
     && rm -rf /var/lib/apt/lists/* \

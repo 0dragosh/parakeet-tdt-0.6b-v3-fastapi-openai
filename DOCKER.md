@@ -35,6 +35,24 @@ docker run -d --name parakeet-gpu -p 5092:5092 --gpus all \
     -v parakeet-models:/app/models ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest
 ```
 
+### GPU with TensorRT (Maximum Performance)
+
+TensorRT optimizes the model graph for your specific GPU, providing ~2-4x faster inference than CUDA alone. The first run takes a few minutes while TensorRT builds its optimized engine (cached afterward).
+
+**Prerequisites:**
+- Same as GPU deployment above
+- NVIDIA GPU with compute capability 7.0+ (Volta or newer recommended)
+
+```bash
+# Build and run with Docker Compose
+docker compose up parakeet-tensorrt -d
+
+# Or run manually with the same GPU image + env var
+docker run -d --name parakeet-tensorrt -p 5092:5092 --gpus all \
+    -e PARAKEET_DEVICE=tensorrt \
+    -v parakeet-models:/app/models ghcr.io/0dragosh/parakeet-tdt-0.6b-v3-fastapi-openai:latest
+```
+
 ## Endpoints
 
 | Endpoint | Description |
@@ -52,7 +70,7 @@ docker run -d --name parakeet-gpu -p 5092:5092 --gpus all \
 |----------|---------|-------------|
 | `HF_HOME` | `/app/models` | HuggingFace model cache |
 | `HF_HUB_CACHE` | `/app/models` | HuggingFace hub cache |
-| `PARAKEET_DEVICE` | `auto` | Runtime provider mode: `auto`, `cuda`, `tensorrt`, or `cpu` |
+| `PARAKEET_DEVICE` | `auto` | Runtime provider: `auto` (CUDA→CPU), `cuda`, `tensorrt`, or `cpu` |
 
 ### Persistent Model Cache
 
@@ -75,7 +93,7 @@ docker volume rm parakeet-models
 |------|-------------|
 | `pyproject.toml` | uv dependency definitions (cpu/gpu extras) |
 | `Dockerfile.cpu` | CPU-only image (Python 3.10 slim) |
-| `Dockerfile.gpu` | NVIDIA CUDA 12.4.1 cuDNN runtime image with GPU support |
+| `Dockerfile.gpu` | NVIDIA CUDA 12.4.1 cuDNN runtime image with GPU + TensorRT support |
 | `docker-compose.yml` | Orchestration for both variants |
 | `.dockerignore` | Excludes unnecessary files from build |
 
